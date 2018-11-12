@@ -1,43 +1,37 @@
-import {
-    createStore,
-    applyMiddleware,
-    compose
-} from 'redux';
+import { createStore, applyMiddleware, compose } from "redux";
 
-import { createLogger } from 'redux-logger';
-import { Iterable } from 'immutable'
-import createSagaMiddleware from 'redux-saga';
-import thunk from 'redux-thunk'
+import { createLogger } from "redux-logger";
+import { Iterable } from "immutable";
+import thunk from "redux-thunk";
 
-import { getQuery } from './utility'
-import { initSagas } from './initSagas';
-import { reducer } from './combineReducers';
-import { defaultState } from './defaultState'
+import { getQuery } from "./utility";
+import { reducer } from "./combineReducers";
+import { defaultState } from "./defaultState";
+import createSagaMiddleware from "redux-saga";
+import { initSagas } from "./initSagas";
 
-const stateTransformer = (state) => {
-    if (Iterable.isIterable(state)) return state.toJS();
-    else return state;
+const stateTransformer = state => {
+  if (Iterable.isIterable(state)) return state.toJS();
+  else return state;
 };
 
 const logger = createLogger({
-    stateTransformer,
+  stateTransformer
 });
 
-export const getStore = ()=>{
-    const sagaMiddleware = createSagaMiddleware();
-    const middleWares = [sagaMiddleware,thunk];
-    if (getQuery()['logger']) { middleWares.push(logger)}
-    const composables = [applyMiddleware(...middleWares)
-    //    , window.__REDUX_DEVTOOLS_EXTENSION__ && window.__REDUX_DEVTOOLS_EXTENSION__()
-    ];
-    const enhancer = compose(
-        ... composables
-);
-    const store = createStore(
-        reducer,
-        defaultState,
-        enhancer,
-    );
-    initSagas(sagaMiddleware);
-    return store;
+export const getStore = () => {
+  const sagaMiddleware = createSagaMiddleware();
+  const middleWares = [sagaMiddleware, thunk];
+  if (getQuery()["logger"]) {
+    middleWares.push(logger);
+  }
+  const composeEnhancers =
+    window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose;
+  const composables = [applyMiddleware(...middleWares)];
+  const enhancer = composeEnhancers(...composables);
+  const store = createStore(reducer, defaultState, enhancer);
+  console.log("saga implemented");
+  initSagas(sagaMiddleware);
+
+  return store;
 };
